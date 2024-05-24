@@ -12,6 +12,7 @@
 		53AB7C1A2C00E3C7002288F6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53AB7C192C00E3C7002288F6 /* Assets.xcassets */; };
 		53AB7C1D2C00E3C7002288F6 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53AB7C1C2C00E3C7002288F6 /* Preview Assets.xcassets */; };
 		53AB7C282C00E5AC002288F6 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53AB7C272C00E5AC002288F6 /* CameraManager.swift */; };
+		53AB7C2A2C00F0A6002288F6 /* PhotoLibraryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53AB7C292C00F0A6002288F6 /* PhotoLibraryManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,6 +22,7 @@
 		53AB7C192C00E3C7002288F6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		53AB7C1C2C00E3C7002288F6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		53AB7C272C00E5AC002288F6 /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
+		53AB7C292C00F0A6002288F6 /* PhotoLibraryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +100,7 @@
 			isa = PBXGroup;
 			children = (
 				53AB7C272C00E5AC002288F6 /* CameraManager.swift */,
+				53AB7C292C00F0A6002288F6 /* PhotoLibraryManager.swift */,
 			);
 			path = Manager;
 			sourceTree = "<group>";
@@ -174,6 +177,7 @@
 			files = (
 				53AB7C182C00E3C5002288F6 /* ContentView.swift in Sources */,
 				53AB7C282C00E5AC002288F6 /* CameraManager.swift in Sources */,
+				53AB7C2A2C00F0A6002288F6 /* PhotoLibraryManager.swift in Sources */,
 				53AB7C162C00E3C5002288F6 /* SwiftCameraApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
