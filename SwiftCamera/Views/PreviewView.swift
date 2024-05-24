@@ -73,6 +73,11 @@ struct PreviewView: View {
                                 .font(.system(size: 50))
                         } else {
                             // Fallback on earlier versions
+                            Image(systemName: "record.circle")
+                                .foregroundColor(isRecording ? Color.red : Color.white)
+                                .font(.system(size: 50))
+                                .scaleEffect(isRecording ? 1.2 : 1.0)
+                                .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: isRecording)
                         }
                     }
                     

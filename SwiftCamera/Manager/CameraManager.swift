@@ -61,9 +61,9 @@ class CameraManager: NSObject {
     }
     
     private var availableCaptureDevices: [AVCaptureDevice] {
-        captureDevices.filter { capture in
-            capture.isConnected && !capture.isSuspended
-        }
+        captureDevices
+            .filter( { $0.isConnected } )
+            .filter( { !$0.isSuspended } )
     }
     
     private var captureDevice: AVCaptureDevice? {
