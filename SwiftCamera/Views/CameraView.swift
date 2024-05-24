@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  CameraView.swift
 //  SwiftCamera
 //
 //  Created by Hidayat Abisena on 24/05/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct CameraView: View {
     var body: some View {
         VStack {
             Image(systemName: "globe")
@@ -20,5 +20,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    CameraView()
 }
