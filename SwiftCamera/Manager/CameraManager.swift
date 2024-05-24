@@ -7,8 +7,10 @@
 
 import UIKit
 import AVFoundation
+import ImageIO
 
 class CameraManager: NSObject {
+    
     private let captureSession = AVCaptureSession()
     
     private var isCaptureSessionConfigured = false
@@ -16,35 +18,23 @@ class CameraManager: NSObject {
     private var photoOutput: AVCapturePhotoOutput?
     private var movieFileOutput: AVCaptureMovieFileOutput?
     
-    // MARK: - PREVIEW
+    // for preview
     private var videoOutput: AVCaptureVideoDataOutput?
     private var sessionQueue: DispatchQueue!
     
-    // MARK: - CAPTURE DEVICE
+    // device related
     private var allCaptureDevices: [AVCaptureDevice] {
-        AVCaptureDevice.DiscoverySession(
-            deviceTypes: [
-                .builtInTrueDepthCamera,
-                .builtInDualCamera,
-                .builtInDualWideCamera,
-                .builtInWideAngleCamera,
-                .builtInDualWideCamera
-            ],
-            mediaType: .video,
-            position: .unspecified
-        ).devices
+        AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera, .builtInDualWideCamera], mediaType: .video, position: .unspecified).devices
     }
     
     private var frontCaptureDevices: [AVCaptureDevice] {
-        allCaptureDevices.filter { capture in
-            capture.position == .front
-        }
+        allCaptureDevices
+            .filter { $0.position == .front }
     }
     
     private var backCaptureDevices: [AVCaptureDevice] {
-        allCaptureDevices.filter { capture in
-            capture.position == .back
-        }
+        allCaptureDevices
+            .filter { $0.position == .back }
     }
     
     private var captureDevices: [AVCaptureDevice] {
@@ -52,11 +42,9 @@ class CameraManager: NSObject {
         if let backDevice = backCaptureDevices.first {
             devices += [backDevice]
         }
-        
-        if let frontDevices = frontCaptureDevices.first {
-            devices += [frontDevices]
+        if let frontDevice = frontCaptureDevices.first {
+            devices += [frontDevice]
         }
-        
         return devices
     }
     
@@ -74,7 +62,7 @@ class CameraManager: NSObject {
             }
         }
     }
-    
+        
     var isRunning: Bool {
         captureSession.isRunning
     }
@@ -89,7 +77,7 @@ class CameraManager: NSObject {
         return backCaptureDevices.contains(captureDevice)
     }
     
-    // MARK: - CAPTURE PHOTO
+    // for capture photo
     private var addToPhotoStream: ((AVCapturePhoto) -> Void)?
     
     lazy var photoStream: AsyncStream<AVCapturePhoto> = {
@@ -100,7 +88,7 @@ class CameraManager: NSObject {
         }
     }()
     
-    // MARK: - RECORD MOVIE
+    // for record movie file
     private var addToMovieFileStream: ((URL) -> Void)?
     
     lazy var movieFileStream: AsyncStream<URL> = {
@@ -111,9 +99,9 @@ class CameraManager: NSObject {
         }
     }()
     
-    // MARK: - PREVIEW OUTPUT
+    // for preview device output
     var isPreviewPaused = false
-    
+
     private var addToPreviewStream: ((CIImage) -> Void)?
     
     lazy var previewStream: AsyncStream<CIImage> = {
@@ -126,9 +114,10 @@ class CameraManager: NSObject {
         }
     }()
     
+    
     override init() {
         super.init()
-        
+        // The value of this property is an AVCaptureSessionPreset indicating the current session preset in use by the receiver. The sessionPreset property may be set while the receiver is running.
         captureSession.sessionPreset = .low
         
         sessionQueue = DispatchQueue(label: "session queue")
@@ -136,6 +125,7 @@ class CameraManager: NSObject {
         
     }
     
+
     func start() async {
         let authorized = await checkAuthorization()
         guard authorized else {
@@ -170,7 +160,7 @@ class CameraManager: NSObject {
         }
     }
     
-    // MARK: - SWITCH CAMERA
+    // switch between available cameras
     func switchCaptureDevice() {
         if let captureDevice = captureDevice, let index = availableCaptureDevices.firstIndex(of: captureDevice) {
             let nextIndex = (index + 1) % availableCaptureDevices.count
@@ -180,7 +170,7 @@ class CameraManager: NSObject {
         }
     }
     
-    // MARK: - RECORDING VIDEO
+    
     func startRecordingVideo() {
         guard let movieFileOutput = self.movieFileOutput else {
             print("Cannot find movie file output")
@@ -193,7 +183,7 @@ class CameraManager: NSObject {
             print("Cannot access local file domain")
             return
         }
-        
+
         let fileName = UUID().uuidString
         let filePath = directoryPath
             .appendingPathComponent(fileName)
@@ -209,44 +199,42 @@ class CameraManager: NSObject {
         }
         movieFileOutput.stopRecording()
     }
-    
-    // MARK: - TAKING PICTURE
+
     func takePhoto() {
         guard let photoOutput = self.photoOutput else { return }
-        
+
         sessionQueue.async {
             var photoSettings = AVCapturePhotoSettings()
-            
+
             if photoOutput.availablePhotoCodecTypes.contains(.hevc) {
                 photoSettings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.hevc])
             }
-            
+
             let isFlashAvailable = self.deviceInput?.device.isFlashAvailable ?? false
             photoSettings.flashMode = isFlashAvailable ? .auto : .off
             if let previewPhotoPixelFormatType = photoSettings.availablePreviewPhotoPixelFormatTypes.first {
                 photoSettings.previewPhotoFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPhotoPixelFormatType]
             }
             photoSettings.photoQualityPrioritization = .balanced
-            
+
             if let photoOutputVideoConnection = photoOutput.connection(with: .video) {
                 if #available(iOS 17.0, *) {
                     photoOutputVideoConnection.videoRotationAngle = RotationAngle.portrait.rawValue
                 } else {
-                    // Fallback on earlier versions
+                    photoOutputVideoConnection.videoOrientation = .portrait
                 }
             }
-            
+
             photoOutput.capturePhoto(with: photoSettings, delegate: self)
         }
     }
     
-    // MARK: - UPDATE SESSION
     private func updateSessionForCaptureDevice(_ captureDevice: AVCaptureDevice) {
         guard isCaptureSessionConfigured else { return }
         
         captureSession.beginConfiguration()
         defer { captureSession.commitConfiguration() }
-        
+
         for input in captureSession.inputs {
             if let deviceInput = input as? AVCaptureDeviceInput {
                 captureSession.removeInput(deviceInput)
@@ -266,13 +254,12 @@ class CameraManager: NSObject {
         guard let validDevice = device else { return nil }
         do {
             return try AVCaptureDeviceInput(device: validDevice)
-        } catch {
+        } catch let error {
             print("Error getting capture device input: \(error.localizedDescription)")
             return nil
         }
     }
     
-    // MARK: - CONFIGURE CAPTURE
     private func configureCaptureSession(completionHandler: (_ success: Bool) -> Void) {
         
         var success = false
@@ -322,7 +309,7 @@ class CameraManager: NSObject {
         self.photoOutput = photoOutput
         self.videoOutput = videoOutput
         self.movieFileOutput = movieFileOutput
-        
+
         photoOutput.maxPhotoQualityPrioritization = .quality
         
         updateVideoOutputConnection()
@@ -331,6 +318,7 @@ class CameraManager: NSObject {
         
         success = true
     }
+    
     
     private func checkAuthorization() async -> Bool {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -361,19 +349,41 @@ class CameraManager: NSObject {
             }
         }
     }
+
 }
 
-// MARK: - EXTENSION
 extension CameraManager: AVCapturePhotoCaptureDelegate {
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        
         if let error = error {
             print("Error capturing photo: \(error.localizedDescription)")
             return
         }
         
+        guard let photoData = photo.fileDataRepresentation() else {
+            return
+        }
+        
+        var uiImage = UIImage(data: photoData)!
+        
+        if #available(iOS 17.0, *) {
+            // No need to fix orientation
+        } else {
+            uiImage = fixOrientation(uiImage)
+        }
+        
+        // Process the photo as needed
         addToPhotoStream?(photo)
+    }
+    
+    private func fixOrientation(_ image: UIImage) -> UIImage {
+        guard image.imageOrientation != .up else { return image }
+        
+        UIGraphicsBeginImageContextWithOptions(image.size, false, image.scale)
+        image.draw(in: CGRect(origin: .zero, size: image.size))
+        let normalizedImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        return normalizedImage
     }
     
 }
@@ -401,10 +411,25 @@ extension CameraManager: AVCaptureFileOutputRecordingDelegate {
     }
 }
 
-
 private enum RotationAngle: CGFloat {
     case portrait = 90
     case portraitUpsideDown = 270
     case landscapeRight = 180
     case landscapeLeft = 0
+}
+
+extension UIImage.Orientation {
+    var cgImageOrientation: CGImagePropertyOrientation {
+        switch self {
+        case .up: return .up
+        case .down: return .down
+        case .left: return .left
+        case .right: return .right
+        case .upMirrored: return .upMirrored
+        case .downMirrored: return .downMirrored
+        case .leftMirrored: return .leftMirrored
+        case .rightMirrored: return .rightMirrored
+        @unknown default: return .up
+        }
+    }
 }
