@@ -11,6 +11,7 @@
 		53AB7C182C00E3C5002288F6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53AB7C172C00E3C5002288F6 /* ContentView.swift */; };
 		53AB7C1A2C00E3C7002288F6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53AB7C192C00E3C7002288F6 /* Assets.xcassets */; };
 		53AB7C1D2C00E3C7002288F6 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 53AB7C1C2C00E3C7002288F6 /* Preview Assets.xcassets */; };
+		53AB7C282C00E5AC002288F6 /* CameraManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53AB7C272C00E5AC002288F6 /* CameraManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,6 +20,7 @@
 		53AB7C172C00E3C5002288F6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		53AB7C192C00E3C7002288F6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		53AB7C1C2C00E3C7002288F6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		53AB7C272C00E5AC002288F6 /* CameraManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,6 +53,7 @@
 		53AB7C142C00E3C5002288F6 /* SwiftCamera */ = {
 			isa = PBXGroup;
 			children = (
+				53AB7C262C00E599002288F6 /* Manager */,
 				53AB7C232C00E50E002288F6 /* App */,
 				53AB7C242C00E515002288F6 /* Views */,
 				53AB7C252C00E51E002288F6 /* Resources */,
@@ -89,6 +92,14 @@
 				53AB7C192C00E3C7002288F6 /* Assets.xcassets */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		53AB7C262C00E599002288F6 /* Manager */ = {
+			isa = PBXGroup;
+			children = (
+				53AB7C272C00E5AC002288F6 /* CameraManager.swift */,
+			);
+			path = Manager;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -162,6 +173,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				53AB7C182C00E3C5002288F6 /* ContentView.swift in Sources */,
+				53AB7C282C00E5AC002288F6 /* CameraManager.swift in Sources */,
 				53AB7C162C00E3C5002288F6 /* SwiftCameraApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
