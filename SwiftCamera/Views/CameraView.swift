@@ -8,17 +8,41 @@
 import SwiftUI
 
 struct CameraView: View {
+    @StateObject private var model = CameraModel()
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+
+        ZStack {
+            if let _ = model.photoToken {
+                SaveImageView()
+            } else if let _ = model.movieFileUrl {
+                SaveVideoView()
+            } else {
+                PreviewView()
+                    .onAppear {
+                        model.camera.isPreviewPaused = false
+                    }
+                    .onDisappear {
+                        model.camera.isPreviewPaused = true
+                    }
+            }
+
         }
-        .padding()
+        .task {
+            await model.camera.start()
+        }
+        .ignoresSafeArea(.all)
+        .environmentObject(model)
     }
 }
 
+
 #Preview {
-    CameraView()
+    @StateObject var model = CameraModel()
+//    model.photoToken = Image(systemName: "checkmark")
+
+//    CameraView()
+    return SaveImageView()
+        .environmentObject(model)
+
 }
