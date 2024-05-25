@@ -397,6 +397,7 @@ extension CameraManager: AVCapturePhotoCaptureDelegate {
     
 }
 
+// MARK: - ORIENTATION PREVIEW
 extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
@@ -406,7 +407,8 @@ extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
         if #available(iOS 17.0, *) {
             connection.videoRotationAngle = RotationAngle.portrait.rawValue
         } else {
-            let transform = CGAffineTransform(rotationAngle: 3 * CGFloat.pi / 2) // Rotate 270 degrees
+            // Rotate 270 degrees
+            let transform = CGAffineTransform(rotationAngle: 3 * CGFloat.pi / 2)
             ciImage = ciImage.transformed(by: transform)
         }
         
