@@ -18,13 +18,24 @@ class CameraManager: NSObject {
     private var photoOutput: AVCapturePhotoOutput?
     private var movieFileOutput: AVCaptureMovieFileOutput?
     
-    // for preview
+    // MARK: - PREVIEW
     private var videoOutput: AVCaptureVideoDataOutput?
     private var sessionQueue: DispatchQueue!
     
-    // device related
+    // MARK: - DEVICE CAMERA
     private var allCaptureDevices: [AVCaptureDevice] {
-        AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera, .builtInDualCamera, .builtInDualWideCamera, .builtInWideAngleCamera, .builtInDualWideCamera], mediaType: .video, position: .unspecified).devices
+        AVCaptureDevice.DiscoverySession(
+            deviceTypes:
+                [
+                    .builtInTrueDepthCamera,
+                    .builtInDualCamera,
+                    .builtInDualWideCamera,
+                    .builtInWideAngleCamera,
+                    .builtInDualWideCamera
+                ],
+            mediaType: .video,
+            position: .unspecified
+        ).devices
     }
     
     private var frontCaptureDevices: [AVCaptureDevice] {
@@ -77,7 +88,7 @@ class CameraManager: NSObject {
         return backCaptureDevices.contains(captureDevice)
     }
     
-    // for capture photo
+    // MARK: - CAPTURE PHOTO
     private var addToPhotoStream: ((AVCapturePhoto) -> Void)?
     
     lazy var photoStream: AsyncStream<AVCapturePhoto> = {
@@ -88,7 +99,7 @@ class CameraManager: NSObject {
         }
     }()
     
-    // for record movie file
+    // MARK: - RECORD MOVIE
     private var addToMovieFileStream: ((URL) -> Void)?
     
     lazy var movieFileStream: AsyncStream<URL> = {
@@ -99,7 +110,7 @@ class CameraManager: NSObject {
         }
     }()
     
-    // for preview device output
+    // MARK: - PREVIEW OUTPUT
     var isPreviewPaused = false
 
     private var addToPreviewStream: ((CIImage) -> Void)?
@@ -117,15 +128,13 @@ class CameraManager: NSObject {
     
     override init() {
         super.init()
-        // The value of this property is an AVCaptureSessionPreset indicating the current session preset in use by the receiver. The sessionPreset property may be set while the receiver is running.
         captureSession.sessionPreset = .low
         
         sessionQueue = DispatchQueue(label: "session queue")
         captureDevice = availableCaptureDevices.first ?? AVCaptureDevice.default(for: .video)
-        
     }
     
-
+    // MARK: - FUNCTION
     func start() async {
         let authorized = await checkAuthorization()
         guard authorized else {
@@ -160,7 +169,7 @@ class CameraManager: NSObject {
         }
     }
     
-    // switch between available cameras
+    // MARK: - SWITCH CAMERAS
     func switchCaptureDevice() {
         if let captureDevice = captureDevice, let index = availableCaptureDevices.firstIndex(of: captureDevice) {
             let nextIndex = (index + 1) % availableCaptureDevices.count
@@ -170,7 +179,7 @@ class CameraManager: NSObject {
         }
     }
     
-    
+    // MARK: - SAVING FILES
     func startRecordingVideo() {
         guard let movieFileOutput = self.movieFileOutput else {
             print("Cannot find movie file output")
@@ -319,7 +328,7 @@ class CameraManager: NSObject {
         success = true
     }
     
-    
+    // MARK: - AUTHORIZATION
     private func checkAuthorization() async -> Bool {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
@@ -352,6 +361,7 @@ class CameraManager: NSObject {
 
 }
 
+// MARK: - EXTENSIONS
 extension CameraManager: AVCapturePhotoCaptureDelegate {
     
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
@@ -372,7 +382,6 @@ extension CameraManager: AVCapturePhotoCaptureDelegate {
             uiImage = fixOrientation(uiImage)
         }
         
-        // Process the photo as needed
         addToPhotoStream?(photo)
     }
     
@@ -392,12 +401,16 @@ extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let pixelBuffer = sampleBuffer.imageBuffer else { return }
+        var ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        
         if #available(iOS 17.0, *) {
             connection.videoRotationAngle = RotationAngle.portrait.rawValue
         } else {
-            // Fallback on earlier versions
+            let transform = CGAffineTransform(rotationAngle: 3 * CGFloat.pi / 2) // Rotate 270 degrees
+            ciImage = ciImage.transformed(by: transform)
         }
-        addToPreviewStream?(CIImage(cvPixelBuffer: pixelBuffer))
+        
+        addToPreviewStream?(ciImage)
     }
 }
 
@@ -433,3 +446,39 @@ extension UIImage.Orientation {
         }
     }
 }
+
+// MARK: - EXIF ORIENTATION
+//extension CameraManager: AVCaptureVideoDataOutputSampleBufferDelegate {
+//    
+//    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+//        guard let pixelBuffer = sampleBuffer.imageBuffer else { return }
+//        var ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+//        
+//        if #available(iOS 17.0, *) {
+//            connection.videoRotationAngle = RotationAngle.portrait.rawValue
+//        } else {
+//            // Manually rotate the CIImage for earlier iOS versions
+//            // Rotate based on image orientation
+//            if let orientation = CGImagePropertyOrientation(rawValue: UInt32(EXIFOrientation.up.rawValue)) {
+//                ciImage = ciImage.oriented(orientation)
+//            } else {
+//                let transform = CGAffineTransform(rotationAngle: CGFloat.pi) // Rotate 180 degrees as fallback
+//                ciImage = ciImage.transformed(by: transform)
+//            }
+//        }
+//        
+//        addToPreviewStream?(ciImage)
+//    }
+//}
+//
+//
+//enum EXIFOrientation: Int {
+//    case up = 1
+//    case upMirrored = 2
+//    case down = 3
+//    case downMirrored = 4
+//    case leftMirrored = 5
+//    case right = 6
+//    case rightMirrored = 7
+//    case left = 8
+//}
